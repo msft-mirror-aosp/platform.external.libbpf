@@ -46,11 +46,12 @@ genrule {
         "bpf/hashmap.h",
         "bpf/libbpf_common.h",
         "bpf/libbpf.h",
+        "bpf/libbpf_internal.h",
         "bpf/libbpf_legacy.h",
         "bpf/libbpf_version.h",
         "bpf/nlattr.h",
         "bpf/skel_internal.h",
-        "bpf/xsk.h",
+        "bpf/relo_core.h",
     ],
 }
 
@@ -112,6 +113,9 @@ cc_library {
     ],
     export_include_dirs: [
         "include/uapi"
+    ],
+    static_libs: [
+        "libelf",
     ],
     generated_headers: ["libbpf_headers"],
     export_generated_headers: ["libbpf_headers"],
