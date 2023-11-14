@@ -57,6 +57,7 @@ genrule {
 
 cc_library_static {
     name: "libbpf",
+    defaults: ["elfutils_transitive_defaults"],
     host_supported: true,
     srcs: [
         "src/*.c",
@@ -97,6 +98,7 @@ cc_library_static {
 
 cc_library {
     name: "libbpf_minimal",
+    defaults: ["elfutils_transitive_defaults"],
     vendor_available: true,
     native_bridge_supported: true,
     srcs: [
