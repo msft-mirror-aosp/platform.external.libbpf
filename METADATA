@@ -1,7 +1,9 @@
-name: "libbpf"
-description:
-    "Supporting headers and tools to interact with BPF and BTF."
+# This project was upgraded with external_updater.
+# Usage: tools/external_updater/updater.sh update libbpf
+# For more info, check https://cs.android.com/android/platform/superproject/+/main:tools/external_updater/README.md
 
+name: "libbpf"
+description: "Supporting headers and tools to interact with BPF and BTF."
 third_party {
   url {
     type: HOMEPAGE
@@ -11,7 +13,11 @@ third_party {
     type: GIT
     value: "https://github.com/libbpf/libbpf"
   }
-  version: "9fab7c81ecd462ce6aa1eabd24b230f0fc6a14c7"
-  last_upgrade_date { year: 2022 month: 1 day: 5 }
+  version: "e26b84dc330c9644c07428c271ab491b0f01f4e1"
   license_type: RESTRICTED
+  last_upgrade_date {
+    year: 2023
+    month: 10
+    day: 12
+  }
 }
