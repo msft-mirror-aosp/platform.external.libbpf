@@ -88,6 +88,7 @@ cc_library_static {
         "//external/bcc/libbpf-tools",
         "//external/dwarves",
         "//external/stg",
+        "//test/sts/tests/hostside/securityPatch/CVE-2023-28147", // For use in tests only.
     ],
     target: {
         host: {
