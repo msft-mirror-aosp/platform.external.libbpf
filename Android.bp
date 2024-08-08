@@ -55,7 +55,7 @@ genrule {
     ],
 }
 
-cc_library_static {
+cc_library {
     name: "libbpf",
     defaults: ["elfutils_transitive_defaults"],
     host_supported: true,
@@ -88,6 +88,7 @@ cc_library_static {
         "//external/bcc/libbpf-tools",
         "//external/dwarves",
         "//external/stg",
+        "//hardware/interfaces/health/utils/libhealthloop", // For use in tests only.
         "//test/sts/tests/hostside/securityPatch/CVE-2023-28147", // For use in tests only.
     ],
     target: {
