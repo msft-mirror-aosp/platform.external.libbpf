@@ -78,6 +78,7 @@ cc_library {
         "-Wno-missing-field-initializers",
         "-Wno-pointer-arith",
         "-Wno-unused-parameter",
+        "-Wno-user-defined-warnings",
     ],
     static_libs: [
         "libelf",
@@ -94,8 +95,8 @@ cc_library {
     target: {
         host: {
             compile_multilib: "64",
-        }
-    }
+        },
+    },
 }
 
 cc_library {
@@ -113,10 +114,10 @@ cc_library {
     ],
     local_include_dirs: [
         "android",
-        "include"
+        "include",
     ],
     export_include_dirs: [
-        "include/uapi"
+        "include/uapi",
     ],
     static_libs: [
         "libelf",
