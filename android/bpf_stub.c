@@ -17,4 +17,8 @@ bool kernel_supports(const struct bpf_object *obj, enum kern_feature_id feat_id)
     return false;
 }
 
+bool feat_supported(struct kern_feature_cache *cache, enum kern_feature_id feat_id)
+{
+    return false;
+}
 

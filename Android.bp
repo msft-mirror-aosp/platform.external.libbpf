@@ -86,6 +86,7 @@ cc_library {
         "-Wno-missing-field-initializers",
         "-Wno-pointer-arith",
         "-Wno-unused-parameter",
+        "-Wno-user-defined-warnings",
     ],
     static_libs: [
         "libelf",
