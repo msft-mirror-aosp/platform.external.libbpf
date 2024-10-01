@@ -55,6 +55,14 @@ genrule {
     ],
 }
 
+cc_library_headers {
+    name: "libbpf_build_headers",
+    export_include_dirs: ["include"],
+    visibility: [
+        "//external/rust/crates/libbpf-sys",
+    ],
+}
+
 cc_library {
     name: "libbpf",
     defaults: ["elfutils_transitive_defaults"],
@@ -87,6 +95,8 @@ cc_library {
         "//external/bpftool",
         "//external/bcc/libbpf-tools",
         "//external/dwarves",
+        "//external/rust/crates/libbpf-rs",
+        "//external/rust/crates/libbpf-sys",
         "//external/stg",
         "//hardware/interfaces/health/utils/libhealthloop", // For use in tests only.
         "//test/sts/tests/hostside/securityPatch/CVE-2023-28147", // For use in tests only.
@@ -94,8 +104,8 @@ cc_library {
     target: {
         host: {
             compile_multilib: "64",
-        }
-    }
+        },
+    },
 }
 
 cc_library {
@@ -113,10 +123,10 @@ cc_library {
     ],
     local_include_dirs: [
         "android",
-        "include"
+        "include",
     ],
     export_include_dirs: [
-        "include/uapi"
+        "include/uapi",
     ],
     static_libs: [
         "libelf",
