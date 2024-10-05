@@ -11,8 +11,6 @@
 #include "libbpf_internal.h"
 #include "str_error.h"
 
-#define STRERR_BUFSIZE  128
-
 /* A SHT_GNU_versym section holds 16-bit words. This bit is set if
  * the symbol is hidden and can only be seen when referenced using an
  * explicit version number. This is a GNU extension.
@@ -141,14 +139,15 @@ static int elf_sym_iter_new(struct elf_sym_iter *iter,
 	iter->versyms = elf_getdata(scn, 0);
 
 	scn = elf_find_next_scn_by_type(elf, SHT_GNU_verdef, NULL);
-	if (!scn) {
-		pr_debug("elf: failed to find verdef ELF sections in '%s'\n", binary_path);
-		return -ENOENT;
-	}
-	if (!gelf_getshdr(scn, &sh))
-		return -EINVAL;
-	iter->verdef_strtabidx = sh.sh_link;
+	if (!scn)
+		return 0;
+
 	iter->verdefs = elf_getdata(scn, 0);
+	if (!iter->verdefs || !gelf_getshdr(scn, &sh)) {
+		pr_warn("elf: failed to get verdef ELF section in '%s'\n", binary_path);
+		return -EINVAL;
+	}
+	iter->verdef_strtabidx = sh.sh_link;
 
 	return 0;
 }
@@ -198,6 +197,9 @@ static const char *elf_get_vername(struct elf_sym_iter *iter, int ver)
 	GElf_Verdaux verdaux;
 	GElf_Verdef verdef;
 	int offset;
+
+	if (!iter->verdefs)
+		return NULL;
 
 	offset = 0;
 	while (gelf_getverdef(iter->verdefs, offset, &verdef)) {
@@ -403,7 +405,8 @@ static int symbol_cmp(const void *a, const void *b)
  * size, that needs to be released by the caller.
  */
 int elf_resolve_syms_offsets(const char *binary_path, int cnt,
-			     const char **syms, unsigned long **poffsets)
+			     const char **syms, unsigned long **poffsets,
+			     int st_type)
 {
 	int sh_types[2] = { SHT_DYNSYM, SHT_SYMTAB };
 	int err = 0, i, cnt_done = 0;
@@ -434,7 +437,7 @@ int elf_resolve_syms_offsets(const char *binary_path, int cnt,
 		struct elf_sym_iter iter;
 		struct elf_sym *sym;
 
-		err = elf_sym_iter_new(&iter, elf_fd.elf, binary_path, sh_types[i], STT_FUNC);
+		err = elf_sym_iter_new(&iter, elf_fd.elf, binary_path, sh_types[i], st_type);
 		if (err == -ENOENT)
 			continue;
 		if (err)
