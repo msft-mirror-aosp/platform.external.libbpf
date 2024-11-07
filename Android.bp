@@ -96,7 +96,7 @@ cc_library {
         "//external/bpftool",
         "//external/bcc/libbpf-tools",
         "//external/dwarves",
-        "//external/rust/crates/libbpf-rs",
+        "//external/rust/android-crates-io/crates/libbpf-rs",
         "//external/rust/crates/libbpf-sys",
         "//external/stg",
         "//hardware/interfaces/health/utils/libhealthloop", // For use in tests only.
