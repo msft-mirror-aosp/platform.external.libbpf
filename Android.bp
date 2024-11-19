@@ -100,7 +100,6 @@ cc_library {
         "//external/rust/android-crates-io/crates/libbpf-sys",
         "//external/stg",
         "//hardware/interfaces/health/utils/libhealthloop", // For use in tests only.
-        "//test/sts/tests/hostside/securityPatch/CVE-2023-28147", // For use in tests only.
     ],
     target: {
         host: {
