@@ -59,7 +59,7 @@ cc_library_headers {
     name: "libbpf_build_headers",
     export_include_dirs: ["include"],
     visibility: [
-        "//external/rust/crates/libbpf-sys",
+        "//external/rust/android-crates-io/crates/libbpf-sys",
     ],
 }
 
@@ -96,11 +96,10 @@ cc_library {
         "//external/bpftool",
         "//external/bcc/libbpf-tools",
         "//external/dwarves",
-        "//external/rust/crates/libbpf-rs",
-        "//external/rust/crates/libbpf-sys",
+        "//external/rust/android-crates-io/crates/libbpf-rs",
+        "//external/rust/android-crates-io/crates/libbpf-sys",
         "//external/stg",
         "//hardware/interfaces/health/utils/libhealthloop", // For use in tests only.
-        "//test/sts/tests/hostside/securityPatch/CVE-2023-28147", // For use in tests only.
     ],
     target: {
         host: {
