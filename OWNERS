@@ -3,3 +3,4 @@ file:platform/system/bpf:main:/OWNERS_bpf
 
 maennich@google.com
 gprocida@google.com
+include platform/system/core:/janitors/OWNERS #{LAST_RESORT_SUGGESTION}
