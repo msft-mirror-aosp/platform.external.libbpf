@@ -57,6 +57,11 @@ genrule {
 
 cc_library_headers {
     name: "libbpf_build_headers",
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.uprobestats",
+    ],
+    min_sdk_version: "apex_inherit",
     export_include_dirs: ["include"],
     visibility: [
         "//external/rust/android-crates-io/crates/libbpf-sys",
@@ -105,6 +110,7 @@ cc_library {
     apex_available: [
         "//apex_available:platform",
         "com.android.tethering",
+        "com.android.uprobestats",
     ],
     min_sdk_version: "apex_inherit",
     target: {
