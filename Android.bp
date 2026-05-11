@@ -103,6 +103,7 @@ cc_library {
         "//frameworks/base/services/tests:__subpackages__", // For use in tests only.
         "//frameworks/opt/car/services/builtInServices/tests", // For use in tests only.
         "//hardware/interfaces/health/utils/libhealthloop", // For use in tests only.
+        "//frameworks/opt/displayoffload/libs/remote_compose_offload_core", // For use in tests only
         // Because libbpf depends on the GPL-licensed libelf, its use should be restricted to the
         // standalone bpf loader binary. This visibility must not be widened.
         "//packages/modules/Connectivity/bpf/loader",
