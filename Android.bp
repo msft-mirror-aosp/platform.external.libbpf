@@ -164,3 +164,57 @@ cc_library {
         "-Wno-unused-parameter",
     ],
 }
+
+cc_library {
+    name: "libbpf_trimmed_uprobestats",
+    defaults: ["elfutils_transitive_defaults"],
+    host_supported: true,
+    srcs: [
+        "src/*.c",
+    ],
+    local_include_dirs: [
+        "android",
+        "include",
+    ],
+    export_include_dirs: [
+        "include/uapi",
+    ],
+    generated_headers: ["libbpf_headers"],
+    export_generated_headers: ["libbpf_headers"],
+    cflags: [
+        "-DCOMPAT_NEED_REALLOCARRAY",
+        "-include android/android.h",
+        "-Wno-constant-conversion",
+        "-Wno-missing-field-initializers",
+        "-Wno-pointer-arith",
+        "-Wno-unused-parameter",
+        "-Wno-user-defined-warnings",
+    ],
+    visibility: [
+        "//external/rust/android-crates-io/crates/libbpf-rs:__subpackages__",
+        "//external/rust/android-crates-io/crates/libbpf-sys:__subpackages__",
+        "//packages/modules/UprobeStats:__subpackages__",
+    ],
+    apex_available: [
+        "com.android.uprobestats",
+    ],
+    min_sdk_version: "apex_inherit",
+    version_script: "src/libbpf_trimmed_uprobestats.map",
+    target: {
+        android: {
+            static_libs: [
+                "libelf",
+            ],
+            shared_libs: [
+                "libz",
+            ],
+        },
+        host: {
+            compile_multilib: "64",
+            static_libs: [
+                "libelf",
+                "libz",
+            ],
+        },
+    },
+}
