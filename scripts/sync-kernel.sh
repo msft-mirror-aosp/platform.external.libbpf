@@ -6,6 +6,7 @@ usage () {
 	echo "Set BPF_NEXT_BASELINE to override bpf-next tree commit, otherwise read from <libbpf-repo>/CHECKPOINT-COMMIT."
 	echo "Set BPF_BASELINE to override bpf tree commit, otherwise read from <libbpf-repo>/BPF-CHECKPOINT-COMMIT."
 	echo "Set MANUAL_MODE to 1 to manually control every cherry-picked commits."
+	echo "Set GIT to override which git binary is used (e.g. one that still ships filter-branch)."
 	exit 1
 }
 
@@ -36,21 +37,42 @@ TMP_DIR=$(mktemp -d)
 
 trap "cd ${WORKDIR}; exit" INT TERM EXIT
 
+# History rewriting below relies on `git filter-branch`. It's deprecated and
+# some git distributions no longer ship it (its modern replacement is the
+# separately-installed git-filter-repo). Let the user point at a different git
+# binary via the GIT env var, and fail early with a clear hint if the selected
+# git can't run filter-branch, instead of dying halfway through the sync.
+GIT=${GIT:-git}
+git() { command "${GIT}" "$@"; }
+
+if ! git filter-branch -h >/dev/null 2>&1; then
+	echo "Error: '${GIT} filter-branch' is unavailable in this git installation."
+	echo ""
+	echo "This script uses 'git filter-branch' to rewrite history, but some git"
+	echo "builds drop this deprecated command (its modern replacement is the"
+	echo "separately-installed git-filter-repo)."
+	echo ""
+	echo "Re-run with a git that still bundles filter-branch via the GIT env var, e.g.:"
+	echo "    GIT=/usr/bin/git $0 $*"
+	exit 1
+fi
+
 declare -A PATH_MAP
 PATH_MAP=(									\
 	[tools/lib/bpf]=src							\
-	[tools/include/uapi/linux/bpf_common.h]=include/uapi/linux/bpf_common.h	\
-	[tools/include/uapi/linux/bpf.h]=include/uapi/linux/bpf.h		\
-	[tools/include/uapi/linux/btf.h]=include/uapi/linux/btf.h		\
-	[tools/include/uapi/linux/fcntl.h]=include/uapi/linux/fcntl.h		\
-	[tools/include/uapi/linux/openat2.h]=include/uapi/linux/openat2.h	\
-	[tools/include/uapi/linux/if_link.h]=include/uapi/linux/if_link.h	\
-	[tools/include/uapi/linux/if_xdp.h]=include/uapi/linux/if_xdp.h		\
-	[tools/include/uapi/linux/netdev.h]=include/uapi/linux/netdev.h		\
-	[tools/include/uapi/linux/netlink.h]=include/uapi/linux/netlink.h	\
-	[tools/include/uapi/linux/pkt_cls.h]=include/uapi/linux/pkt_cls.h	\
-	[tools/include/uapi/linux/pkt_sched.h]=include/uapi/linux/pkt_sched.h	\
+	[include/uapi/linux/bpf_common.h]=include/uapi/linux/bpf_common.h	\
+	[include/uapi/linux/bpf.h]=include/uapi/linux/bpf.h			\
+	[include/uapi/linux/btf.h]=include/uapi/linux/btf.h			\
+	[include/uapi/linux/fcntl.h]=include/uapi/linux/fcntl.h			\
+	[include/uapi/linux/openat2.h]=include/uapi/linux/openat2.h		\
+	[include/uapi/linux/if_link.h]=include/uapi/linux/if_link.h		\
+	[include/uapi/linux/if_xdp.h]=include/uapi/linux/if_xdp.h		\
+	[include/uapi/linux/netdev.h]=include/uapi/linux/netdev.h		\
+	[include/uapi/linux/netlink.h]=include/uapi/linux/netlink.h		\
+	[include/uapi/linux/pkt_cls.h]=include/uapi/linux/pkt_cls.h		\
+	[include/uapi/linux/pkt_sched.h]=include/uapi/linux/pkt_sched.h		\
 	[include/uapi/linux/perf_event.h]=include/uapi/linux/perf_event.h	\
+	[include/uapi/linux/stddef.h]=include/uapi/linux/stddef.h		\
 	[Documentation/bpf/libbpf]=docs						\
 )
 
@@ -63,6 +85,7 @@ LIBBPF_TREE_FILTER="mkdir -p __libbpf/include/uapi/linux __libbpf/include/tools 
 for p in "${!PATH_MAP[@]}"; do
 	LIBBPF_TREE_FILTER+="git mv -kf ${p} __libbpf/${PATH_MAP[${p}]} && "$'\\\n'
 done
+LIBBPF_TREE_FILTER+="find __libbpf/include/uapi/linux -type f -exec sed -i -e 's/_UAPI\(__\?LINUX\)/\1/g' -e 's@^#include <linux/compiler_types.h>@@' {} + && "$'\\\n'
 LIBBPF_TREE_FILTER+="git rm --ignore-unmatch -f __libbpf/src/{Makefile,Build,test_libbpf.c,.gitignore} >/dev/null"
 
 cd_to()
@@ -295,6 +318,22 @@ Latest changes to BPF helper definitions.
 " -- src/bpf_helper_defs.h
 fi
 
+echo "Regenerating .mailmap..."
+cd_to "${LINUX_REPO}"
+git checkout "${TIP_SYM_REF}"
+cd_to "${LIBBPF_REPO}"
+"${LIBBPF_REPO}"/scripts/mailmap-update.sh "${LIBBPF_REPO}" "${LINUX_REPO}"
+# if anything changed, commit it
+mailmap_changes=$(git status --porcelain .mailmap | wc -l)
+if ((${mailmap_changes} == 1)); then
+	git add .mailmap
+	git commit -s -m "sync: update .mailmap
+
+Update .mailmap based on libbpf's list of contributors and on the latest
+.mailmap version in the upstream repository.
+" -- .mailmap
+fi
+
 # Use generated cover-letter as a template for "sync commit" with
 # baseline and checkpoint commits from kernel repo (and leave summary
 # from cover letter intact, of course)
@@ -331,7 +370,7 @@ diff -u ${TMP_DIR}/linux-view.ls ${TMP_DIR}/github-view.ls
 echo "Comparing file contents..."
 CONSISTENT=1
 for F in $(cat ${TMP_DIR}/linux-view.ls); do
-	if ! diff -u "${LINUX_ABS_DIR}/${F}" "${GITHUB_ABS_DIR}/${F}"; then
+	if ! diff -u <(sed 's/_UAPI\(__\?LINUX\)/\1/' "${LINUX_ABS_DIR}/${F}") "${GITHUB_ABS_DIR}/${F}"; then
 		echo "${LINUX_ABS_DIR}/${F} and ${GITHUB_ABS_DIR}/${F} are different!"
 		CONSISTENT=0
 	fi
