@@ -23,6 +23,10 @@
 #include "libbpf_internal.h"
 #include "hashmap.h"
 #include "strset.h"
+#ifdef __ANDROID__
+#include <android/api-level.h>
+#include <sys/system_properties.h>
+#endif
 
 #define BTF_MAX_NR_TYPES 0x7fffffffU
 #define BTF_MAX_STR_OFFSET 0x7fffffffU
@@ -1629,12 +1633,31 @@ struct btf *btf__parse_raw_split(const char *path, struct btf *base_btf)
 	return libbpf_ptr(btf_parse_raw(path, base_btf));
 }
 
+#ifdef __ANDROID__
+static bool android_cannot_mmap;
+
+__attribute__((constructor))
+static void android_init_cannot_mmap(void)
+{
+	char prop[PROP_VALUE_MAX] = {};
+
+	android_cannot_mmap = android_get_device_api_level() < 38 &&
+			   (__system_property_get("ro.build.version.codename", prop) <= 0 ||
+			    !strcmp(prop, "REL"));
+}
+#endif
+
 static struct btf *btf_parse_raw_mmap(const char *path, struct btf *base_btf)
 {
 	struct stat st;
 	void *data;
 	struct btf *btf;
 	int fd, err;
+
+#ifdef __ANDROID__
+	if (android_cannot_mmap)
+		return ERR_PTR(-ENOTSUP);
+#endif
 
 	fd = open(path, O_RDONLY);
 	if (fd < 0)
