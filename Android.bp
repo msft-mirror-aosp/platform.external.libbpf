@@ -38,6 +38,7 @@ genrule {
     out: [
         "bpf/bpf_core_read.h",
         "bpf/bpf_endian.h",
+        "bpf/bpf_gen_internal.h",
         "bpf/bpf.h",
         "bpf/bpf_helper_defs.h",
         "bpf/bpf_helpers.h",
@@ -51,7 +52,10 @@ genrule {
         "bpf/libbpf_version.h",
         "bpf/nlattr.h",
         "bpf/skel_internal.h",
+        "bpf/strset.h",
         "bpf/relo_core.h",
+        "bpf/usdt.bpf.h",
+        "bpf/zip.h",
     ],
 }
 
@@ -140,7 +144,7 @@ cc_library {
     srcs: [
         "android/bpf_stub.c",
         "src/bpf.c",
-        "src/libbpf_errno.c",
+        "src/libbpf_utils.c",
         "src/netlink.c",
         "src/nlattr.c",
         "src/ringbuf.c",
